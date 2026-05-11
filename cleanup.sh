@@ -12,15 +12,16 @@ echo "Ini hapus lokasi..."
 rm -f location_*.txt
 rm -f current_location.bak
 
-# Hapus gambar
-echo "Hapus gambar dulu..."
-rm -f cam*.png
+# Hapus gambar dari folder capture
+echo "Hapus gambar dari folder capture..."
+if [ -d "capture" ]; then
+  rm -f capture/capture_*.png
+  rm -f capture/*.log
+fi
 
-# Remove temporary HTML files
-echo "Removing temporary HTML files..."
-rm -f index.php
-rm -f index2.html
-rm -f index3.html
+# Hapus gambar lama dari root (jika ada)
+echo "Hapus gambar lama dari root..."
+rm -f cam*.png
 
 # Ini buat hapus lokasi yang di simpan
 echo "hapus lokasi yang di simpan dulu..."
@@ -32,6 +33,7 @@ fi
 echo "Oke ini terakhir buat hapus log sampahnya..."
 rm -f LocationLog.log
 rm -f LocationError.log
-rm -f Log.log
+rm -f saved.ip.txt
+rm -f saved.locations.txt
 
 echo "Yeyyyyy udah bersih!"

